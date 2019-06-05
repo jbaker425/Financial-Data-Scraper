@@ -63,7 +63,8 @@ def scrapeIncomeData(ticker):
 	return myDict
 
 def main():
-	tick = "okta"
+	#Put ticker name here
+	tick = ""
 	plt.close('all')
 	print "Gathering income data for %s..."%tick
 	incomeData = scrapeIncomeData(tick)

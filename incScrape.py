@@ -121,7 +121,7 @@ def scrapeBalanceSheet(ticker):
 	return myDict
 
 def main():
-	tick = "aapl"
+	tick = ""
 	#plt.close('all')
 	#print "Gathering income data for %s..."%tick
 	incomeData = scrapeIncomeData(tick)

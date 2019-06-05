@@ -40,8 +40,6 @@ def scrapeIncomeData(ticker):
 			if ele or ele != '':
 				data.append(ele)
 
-		
-
 	#pair headers with row data
 	myDict = {}
 	x = 0 

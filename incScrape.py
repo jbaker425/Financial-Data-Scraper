@@ -122,13 +122,13 @@ def scrapeBalanceSheet(ticker):
 
 def main():
 	tick = ""
-	#plt.close('all')
-	#print "Gathering income data for %s..."%tick
+	plt.close('all')
+	print "Gathering income data for %s..."%tick
 	incomeData = scrapeIncomeData(tick)
 	#print "income data:", incomeData, len(incomeData.keys())
 	balanceSheet = scrapeBalanceSheet(tick)
 	#print "balance sheet:", balanceSheet, len(balanceSheet.keys())
-	
+
 	print "Values in 000's"
 
 	#Pop period end dates for indexes

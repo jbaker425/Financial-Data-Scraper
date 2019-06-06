@@ -2,7 +2,7 @@ import urllib2
 import pandas as pd
 import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup
-from string import maketrans
+import argparse
 
 def scrapeIncomeData(ticker):
 	url = "https://www.nasdaq.com/symbol/%s/financials?query=income-statement"%(ticker)
@@ -97,8 +97,6 @@ def scrapeBalanceSheet(ticker):
 		for ele in cols:
 			if ele or ele != '':
 				data.append(ele)
-	#print data, len(data)
-	#print headNames, len(headNames)
 
 	#pair headers with row data
 	myDict = {}
@@ -120,44 +118,70 @@ def scrapeBalanceSheet(ticker):
 
 	return myDict
 
-def main():
-	tick = ""
-	plt.close('all')
-	print "Gathering income data for %s..."%tick
-	incomeData = scrapeIncomeData(tick)
-	#print "income data:", incomeData, len(incomeData.keys())
-	balanceSheet = scrapeBalanceSheet(tick)
-	#print "balance sheet:", balanceSheet, len(balanceSheet.keys())
-
-	print "Values in 000's"
-
+def convertToDF(dictArg):
 	#Pop period end dates for indexes
-	rows = incomeData.pop('Period Ending:')
-	dtii = pd.to_datetime(rows)
+	rows = dictArg.pop('Period Ending:')
+	dti = pd.to_datetime(rows) 			# dti: datetime index
+	#Make chronological dataframe
+	pData = pd.DataFrame(data = dictArg, dtype = 'int64', index = dti)
+	pData = pData[::-1]
+	return pData
 
+def main():
+	#Get command line arg
+	argparser = argparse.ArgumentParser()
+  	argparser.add_argument('ticker',help = 'Company stock symbol')
+  	args = argparser.parse_args()
+  	ticker = args.ticker
+	plt.close('all')
+	print "Gathering income data for %s..."%ticker
+	incomeData = scrapeIncomeData(ticker)
+	balanceSheet = scrapeBalanceSheet(ticker)
+
+	if incomeData and balanceSheet:
+		print "Values in 000's of dollars"
+		fig, (ax1, ax2) = plt.subplots(nrows = 1, ncols = 2, figsize = (14,7))
+	elif incomeData or balanceSheet:
+		print "Values in 000's of dollars"
+		fig, ax1 = plt.subplots(nrows = 1, ncols = 1, figsize = (8,4))
+	else:
+		print "Perhaps NASDAQ does not have this companies financial data on their website."
+	
 	#Make dataframes
 	if incomeData:
-		#Make chronological dataframe
-		pDataI = pd.DataFrame(data = incomeData, dtype = 'int64', index = dtii)
-		pDataI = pDataI[::-1]
-		print pDataI
-
-		plt.figure(1)		
-		pDataI.plot(y = ["Gross Profit", "Total Revenue"],kind='line', table=True)
-		plt.title("%s Income Data"%tick.upper())
-
-	rows = balanceSheet.pop('Period Ending:')
-	dtbi = pd.to_datetime(rows)
+		pDataI = convertToDF(incomeData)
+		iGraph = pDataI[['Gross Profit', 'Total Revenue']]
+		
+		iGraph.plot(kind = "line", ax = ax1)
+		ax1.set_title("%s Income Data"%ticker.upper())
+		ax1.set_xlabel('Period End Date')
+		ax1.set_ylabel("Dollars(in 000's)")
+		#print "\nIncome Data:\n", pDataI
+		'''
+		plt.figure(0)		
+		plt.plot(data = pDataI, kind='line', table=True)
+		plt.title("%s Income Data"%ticker.upper())
+		'''
 
 	if balanceSheet:
-		#Make chronological dataframe
-		pDataB = pd.DataFrame(data = balanceSheet, dtype = 'int64', index = dtbi)
-		pDataB = pDataB[::-1]
-		print pDataB
+		if not incomeData:
+			ax2 = ax1
 
-		plt.figure(2)
-		pDataB.plot(y = ["Total Assets", "Total Liabilities", "Total Equity"],kind='line', table=True)
-		plt.title("%s Balance Sheet"%tick.upper())
+		pDataB = convertToDF(balanceSheet)
+		bGraph = pDataB[['Total Assets', 'Total Liabilities', 'Total Equity']]
+
+		bGraph.plot(kind = "line", ax = ax2)
+		ax2.set_title("%s Balance Sheet"%ticker.upper())
+		ax2.set_xlabel('Period End Date')
+		ax2.set_ylabel("Dollars (in 000's)")
+		#print "\nBalance Sheet\n", pDataB
+		'''
+		plt.figure(1)
+		plt.plot(data = pDataB, kind='line', table=True)
+		plt.title("%s Balance Sheet"%ticker.upper())
+		'''
 	plt.show()
+	print fig, ax1, ax2
+	print "\nGood Metrics:\n", iGraph, '\n', bGraph
 
 main()

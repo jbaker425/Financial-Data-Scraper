@@ -1,14 +1,21 @@
-import urllib2
+#James Baker
+#6/6/19
+#jamesbaker425@gmail.com
+
+import requests
 import pandas as pd
 import matplotlib.pyplot as plt
 from bs4 import BeautifulSoup
 import argparse
 
+#Takes ticker and visits the corresponding NASDAQ page. Then uses Beautiful Soup
+#to sift through the html to find the table data. Grabs table data and loads into
+#a dictionary. Returns a dictionary representative of the income statement table
 def scrapeIncomeData(ticker):
 	url = "https://www.nasdaq.com/symbol/%s/financials?query=income-statement"%(ticker)
 
-	page = urllib2.urlopen(url).read()
-	soup = BeautifulSoup(page, "html5lib")
+	html = requests.get(url)
+	soup = BeautifulSoup(html.text, 'html5lib')
 
 	#get table
 	try:
@@ -60,11 +67,14 @@ def scrapeIncomeData(ticker):
 
 	return myDict
 
+#Takes ticker and visits the corresponding NASDAQ page. Then uses Beautiful Soup
+#to sift through the html to find the table data. Grabs table data and loads into
+#a dictionary. Returns a dictionary representative of the balance sheet table
 def scrapeBalanceSheet(ticker):
 	url = "https://www.nasdaq.com/symbol/%s/financials?query=balance-sheet"%(ticker)
 
-	page = urllib2.urlopen(url).read()
-	soup = BeautifulSoup(page, "html5lib")
+	html = requests.get(url)
+	soup = BeautifulSoup(html.text, 'html5lib')
 
 	#get table
 	try:
@@ -118,6 +128,8 @@ def scrapeBalanceSheet(ticker):
 
 	return myDict
 
+#Converts dictionary to pandas dataframe. Adjusts date column to be the index of
+#the dataframe.
 def convertToDF(dictArg):
 	#Pop period end dates for indexes
 	rows = dictArg.pop('Period Ending:')
@@ -152,36 +164,25 @@ def main():
 		pDataI = convertToDF(incomeData)
 		iGraph = pDataI[['Gross Profit', 'Total Revenue']]
 		
-		iGraph.plot(kind = "line", ax = ax1)
+		iGraph.plot(kind = "line", ax = ax1, marker = "o")
 		ax1.set_title("%s Income Data"%ticker.upper())
 		ax1.set_xlabel('Period End Date')
 		ax1.set_ylabel("Dollars(in 000's)")
-		#print "\nIncome Data:\n", pDataI
-		'''
-		plt.figure(0)		
-		plt.plot(data = pDataI, kind='line', table=True)
-		plt.title("%s Income Data"%ticker.upper())
-		'''
 
 	if balanceSheet:
+		#ax1 will be only axis
 		if not incomeData:
 			ax2 = ax1
 
 		pDataB = convertToDF(balanceSheet)
 		bGraph = pDataB[['Total Assets', 'Total Liabilities', 'Total Equity']]
 
-		bGraph.plot(kind = "line", ax = ax2)
+		bGraph.plot(kind = "line", ax = ax2, marker = "o")
 		ax2.set_title("%s Balance Sheet"%ticker.upper())
 		ax2.set_xlabel('Period End Date')
 		ax2.set_ylabel("Dollars (in 000's)")
-		#print "\nBalance Sheet\n", pDataB
-		'''
-		plt.figure(1)
-		plt.plot(data = pDataB, kind='line', table=True)
-		plt.title("%s Balance Sheet"%ticker.upper())
-		'''
+
 	plt.show()
-	print fig, ax1, ax2
 	print "\nGood Metrics:\n", iGraph, '\n', bGraph
 
 main()

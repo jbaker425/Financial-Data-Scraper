@@ -150,6 +150,7 @@ def main():
 	incomeData = scrapeIncomeData(ticker)
 	balanceSheet = scrapeBalanceSheet(ticker)
 
+	#Handles cases where both, one, or none are available
 	if incomeData and balanceSheet:
 		print "Values in 000's of dollars"
 		fig, (ax1, ax2) = plt.subplots(nrows = 1, ncols = 2, figsize = (14,7))

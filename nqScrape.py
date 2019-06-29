@@ -159,7 +159,7 @@ def main():
 	else:
 		print "Perhaps NASDAQ does not have this companies financial data on their website."
 	
-	#Make dataframes
+	#Convert dictionaries to pandas dataframes, and then plot
 	if incomeData:
 		pDataI = convertToDF(incomeData)
 		iGraph = pDataI[['Gross Profit', 'Total Revenue']]
